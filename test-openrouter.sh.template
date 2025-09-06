@@ -1,0 +1,7 @@
+#!/bin/bash
+# Template for running OpenRouter tests
+# Copy this file to test-openrouter.sh and add your API key
+
+# Set your OpenRouter API key here for testing
+export OPENROUTER_API_KEY="sk-or-your-openrouter-key-here"
+pnpm test

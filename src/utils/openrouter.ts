@@ -13,8 +13,12 @@ import { KnownError } from './error.js';
 import type { CommitType } from './config.js';
 import { generatePrompt } from './prompt.js';
 
+interface OpenRouterConfig {
+	siteUrl?: string;
+	siteName?: string;
+}
+
 const httpsPost = async (
-	hostname: string,
 	path: string,
 	headers: Record<string, string>,
 	json: unknown,
@@ -30,7 +34,7 @@ const httpsPost = async (
 		const request = https.request(
 			{
 				port: 443,
-				hostname,
+				hostname: 'openrouter.ai',
 				path,
 				method: 'POST',
 				headers: {
@@ -58,7 +62,7 @@ const httpsPost = async (
 			request.destroy();
 			reject(
 				new KnownError(
-					`Time out error: request took over ${timeout}ms. Try increasing the \`timeout\` config, or checking the OpenAI API status https://status.openai.com`
+					`Time out error: request took over ${timeout}ms. Try increasing the \`timeout\` config, or checking the OpenRouter API status.`
 				)
 			);
 		});
@@ -71,32 +75,26 @@ const createChatCompletion = async (
 	apiKey: string,
 	json: CreateChatCompletionRequest,
 	timeout: number,
+	config: OpenRouterConfig = {},
 	proxy?: string
 ) => {
 	const { response, data } = await httpsPost(
-		'api.openai.com',
-		'/v1/chat/completions',
+		'/api/v1/chat/completions',
 		{
 			Authorization: `Bearer ${apiKey}`,
+			'HTTP-Referer': config.siteUrl || '',
+			'X-Title': config.siteName || '',
 		},
 		json,
 		timeout,
 		proxy
 	);
 
-	if (
-		!response.statusCode ||
-		response.statusCode < 200 ||
-		response.statusCode > 299
-	) {
-		let errorMessage = `OpenAI API Error: ${response.statusCode} - ${response.statusMessage}`;
+	if (!response.statusCode || response.statusCode < 200 || response.statusCode > 299) {
+		let errorMessage = `OpenRouter API Error: ${response.statusCode} - ${response.statusMessage}`;
 
 		if (data) {
 			errorMessage += `\n\n${data}`;
-		}
-
-		if (response.statusCode === 500) {
-			errorMessage += '\n\nCheck the API status: https://status.openai.com';
 		}
 
 		throw new KnownError(errorMessage);
@@ -113,23 +111,6 @@ const sanitizeMessage = (message: string) =>
 
 const deduplicateMessages = (array: string[]) => Array.from(new Set(array));
 
-// const generateStringFromLength = (length: number) => {
-// 	let result = '';
-// 	const highestTokenChar = 'z';
-// 	for (let i = 0; i < length; i += 1) {
-// 		result += highestTokenChar;
-// 	}
-// 	return result;
-// };
-
-// const getTokens = (prompt: string, model: TiktokenModel) => {
-// 	const encoder = encoding_for_model(model);
-// 	const tokens = encoder.encode(prompt).length;
-// 	// Free the encoder to avoid possible memory leaks.
-// 	encoder.free();
-// 	return tokens;
-// };
-
 export const generateCommitMessage = async (
 	apiKey: string,
 	model: ExtendedModel,
@@ -139,13 +120,17 @@ export const generateCommitMessage = async (
 	maxLength: number,
 	type: CommitType,
 	timeout: number,
+	config: OpenRouterConfig = {},
 	proxy?: string
 ) => {
 	try {
+		// Ensure model has provider prefix
+		const fullModel = model.includes('/') ? model : `openai/${model}`;
+
 		const completion = await createChatCompletion(
 			apiKey,
 			{
-				model,
+				model: fullModel,
 				messages: [
 					{
 						role: 'system',
@@ -165,6 +150,7 @@ export const generateCommitMessage = async (
 				n: completions,
 			},
 			timeout,
+			config,
 			proxy
 		);
 
@@ -177,7 +163,7 @@ export const generateCommitMessage = async (
 		const errorAsAny = error as any;
 		if (errorAsAny.code === 'ENOTFOUND') {
 			throw new KnownError(
-				`Error connecting to ${errorAsAny.hostname} (${errorAsAny.syscall}). Are you connected to the internet?`
+				`Error connecting to openrouter.ai (${errorAsAny.syscall}). Are you connected to the internet?`
 			);
 		}
 

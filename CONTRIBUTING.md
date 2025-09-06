@@ -42,15 +42,33 @@ node ./dist/cli.mjs
 
 ## Testing
 
-Testing requires passing in `OPENAI_KEY` as an environment variable:
+Testing requires passing in API keys as environment variables. You can test with either OpenAI or OpenRouter:
 
+**Option 1 - OpenAI:**
 ```sh
 OPENAI_KEY=<your OPENAI key> pnpm test
 ```
 
-
-You can still run tests that don't require `OPENAI_KEY` but will not test the main functionality:
+**Option 2 - OpenRouter:**
+```sh
+OPENROUTER_KEY=<your OPENROUTER key> pnpm test
 ```
+
+**Using template scripts:**
+For convenience, you can copy and modify the template test scripts:
+```sh
+# Copy and edit with your API keys
+cp run-tests.sh.template run-tests.sh
+cp test-openrouter.sh.template test-openrouter.sh
+
+# Edit the files to add your API keys, then run:
+./run-tests.sh
+# or
+./test-openrouter.sh
+```
+
+You can still run tests without API keys, but this will skip the main functionality tests:
+```sh
 pnpm test
 ```
 

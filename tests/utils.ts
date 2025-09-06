@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
+import dotenv from 'dotenv';
 import { execa, execaNode, type Options } from 'execa';
 import {
 	createFixture as createFixtureBase,
@@ -22,6 +23,9 @@ const createAicommits = (fixture: FsFixture) => {
 			extendEnv: false,
 			env: {
 				...homeEnv,
+				NODE_ENV: 'test',
+				FIXTURE_PATH: fixture.path,
+				...process.env,  // Include all environment variables
 				...options?.env,
 			},
 
@@ -52,6 +56,9 @@ export const createFixture = async (source?: string | FileTree) => {
 	const fixture = await createFixtureBase(source);
 	const aicommits = createAicommits(fixture);
 
+	// Ensure the fixture directory exists
+	await fs.mkdir(fixture.path, { recursive: true });
+
 	return {
 		fixture,
 		aicommits,
@@ -59,17 +66,32 @@ export const createFixture = async (source?: string | FileTree) => {
 };
 
 export const files = Object.freeze({
-	'.aicommits': `OPENAI_KEY=${process.env.OPENAI_KEY}`,
+	'.aicommits': [
+		process.env.OPENROUTER_KEY
+			? [
+				`OPENROUTER_KEY=${process.env.OPENROUTER_KEY}`,
+				'provider=openrouter',
+				'model=anthropic/claude-3.5-sonnet'
+			]
+			: [
+				'OPENAI_KEY=sk-abc',
+				'provider=openai',
+				'model=gpt-3.5-turbo'
+			]
+	].flat().join('\n'),
 	'data.json': Array.from(
 		{ length: 10 },
 		(_, i) => `${i}. Lorem ipsum dolor sit amet`
 	).join('\n'),
 });
 
-export const assertOpenAiToken = () => {
-	if (!process.env.OPENAI_KEY) {
+// Load environment variables from .env file
+dotenv.config();
+
+export const assertAiProviderToken = () => {
+	if (!process.env.OPENAI_KEY && !process.env.OPENROUTER_KEY) {
 		throw new Error(
-			'⚠️  process.env.OPENAI_KEY is necessary to run these tests. Skipping...'
+			'⚠️  Either OPENAI_KEY or OPENROUTER_KEY is necessary to run these tests. Skipping...'
 		);
 	}
 };

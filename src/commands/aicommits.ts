@@ -14,7 +14,7 @@ import {
 	getDetectedMessage,
 } from '../utils/git.js';
 import { getConfig } from '../utils/config.js';
-import { generateCommitMessage } from '../utils/openai.js';
+import { generateCommitMessage } from '../utils/ai-provider.js';
 import { KnownError, handleCliError } from '../utils/error.js';
 
 export default async (
@@ -64,17 +64,21 @@ export default async (
 		s.start('The AI is analyzing your changes');
 		let messages: string[];
 		try {
-			messages = await generateCommitMessage(
-				config.OPENAI_KEY,
-				config.model,
-				config.locale,
-				staged.diff,
-				config.generate,
-				config['max-length'],
-				config.type,
-				config.timeout,
-				config.proxy
-			);
+			messages = await generateCommitMessage({
+				provider: config.provider,
+				openaiKey: config.OPENAI_KEY,
+				openrouterKey: config.OPENROUTER_KEY,
+				openrouterSiteUrl: config.OPENROUTER_SITE_URL,
+				openrouterSiteName: config.OPENROUTER_SITE_NAME,
+				model: config.model,
+				locale: config.locale,
+				diff: staged.diff,
+				completions: config.generate,
+				maxLength: config['max-length'],
+				type: config.type,
+				timeout: config.timeout,
+				proxy: config.proxy
+			});
 		} finally {
 			s.stop('Changes analyzed');
 		}

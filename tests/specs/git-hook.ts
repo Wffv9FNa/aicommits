@@ -1,7 +1,8 @@
 import path from 'path';
+import fs from 'fs/promises';
 import { testSuite, expect } from 'manten';
 import {
-	assertOpenAiToken,
+	assertAiProviderToken,
 	createFixture,
 	createGit,
 	files,
@@ -9,7 +10,7 @@ import {
 
 export default testSuite(({ describe }) => {
 	describe('Git hook', ({ test }) => {
-		assertOpenAiToken();
+		assertAiProviderToken();
 
 		test('errors when not in Git repo', async () => {
 			const { fixture, aicommits } = await createFixture(files);
@@ -50,10 +51,24 @@ export default testSuite(({ describe }) => {
 			expect(stdout).toMatch('Hook installed');
 
 			await git('add', ['data.json']);
+			// Set up environment with the correct provider and key
+			const useOpenRouter = Boolean(process.env.OPENROUTER_KEY);
+
+			// Write initial config file
+			const initialConfig = useOpenRouter
+				? `provider=openrouter\nmodel=anthropic/claude-3.5-sonnet\nOPENROUTER_KEY=${process.env.OPENROUTER_KEY}`
+				: `provider=openai\nmodel=gpt-3.5-turbo\nOPENAI_KEY=sk-test1234567890abcdef1234567890abcdef12345678`;
+			const configPath = path.join(fixture.path, '.aicommits');
+			await fs.mkdir(path.dirname(configPath), { recursive: true });
+			await fs.writeFile(configPath, initialConfig, 'utf8');
+
 			await git('commit', ['--no-edit'], {
 				env: {
+					...process.env,
 					HOME: fixture.path,
 					USERPROFILE: fixture.path,
+					NODE_ENV: 'test',
+					FIXTURE_PATH: fixture.path,
 				},
 			});
 

@@ -24,3 +24,13 @@ dist
 
 # Eslint cache
 .eslintcache
+
+# IDE
+.cursor/
+
+# API Keys and local config
+.aicommits
+run-tests.sh
+test-openrouter.sh
+*.env
+.env.*
