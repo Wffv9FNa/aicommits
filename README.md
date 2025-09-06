@@ -5,7 +5,6 @@
   </div>
  <p>A CLI that writes your git commit messages for you with AI. Never write a commit message again.</p>
  <p><strong>🚀 Fork</strong> - This is an enhanced version with OpenRouter support, allowing you to use Claude, GPT-4, and other AI models via OpenRouter's API.</p>
- <a href="https://www.npmjs.com/package/aicommits"><img src="https://img.shields.io/npm/v/aicommits" alt="Original version"></a>
 </div>
 
 ---
@@ -14,6 +13,9 @@
 
 This is a fork of the original [aicommits](https://github.com/Nutlope/aicommits) project by [Hassan El Mghari](https://github.com/Nutlope).
 This fork adds OpenRouter support for access to additional AI models.
+<div>
+<a href="https://www.npmjs.com/package/aicommits"><img src="https://img.shields.io/npm/v/aicommits" alt="Original version"></a>
+</div>
 
 ---
 
