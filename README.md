@@ -10,12 +10,7 @@
 
 ---
 
-<div style="text-align:center; font-family: monospace; white-space: pre; font-weight:bold; font-size:16px;">
-____ ____ _ ____ _ _  _ ____ _       ___  ____ ____  _ ____ ____ ___
-|  | |__/ | | __ | |\ | |__| |       |__] |__/ |  |  | |___ |     |
-|__| |  \ | |__] | | \| |  | |___    |    |  \ |__| _| |___ |___  |
-</br>
-</div>
+# Original Project
 
 This is a fork of the original [aicommits](https://github.com/Nutlope/aicommits) project by [Hassan El Mghari](https://github.com/Nutlope).
 This fork adds OpenRouter support for access to additional AI models.
@@ -63,6 +58,7 @@ Table of contents
   * [How it works](#how-it-works)
     * [Development](#development)
 <!--te-->
+---
 
 ## Features
 
